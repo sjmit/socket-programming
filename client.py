@@ -13,7 +13,7 @@ def main(argv):
     try:
         port = int(argv[1])
     except ValueError:
-        print("Port is not an integer")
+        print("ERROR - Port is not an integer")
         return
 
     # Open IPv4/TCP socket
@@ -24,7 +24,7 @@ def main(argv):
         s.connect((host, port))
 
         # Send arbitrary command
-        # This function will resend in the event of an error
+        # This function will resend data in the event of an error
         s.sendall(b'256')
 
         # Recieve random port number
@@ -43,7 +43,7 @@ def main(argv):
         try:
             f = open(filename, 'rb')
         except OSError:
-            print("{} not found".format(filename))
+            print("ERROR - {} not found".format(filename))
         else:
             with f:
                 # Send packets of 4 until eof is reached
