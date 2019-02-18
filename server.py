@@ -13,7 +13,7 @@ def main(argv):
     try:
         port = int(argv[0])
     except ValueError:
-        print("Port is not an integer")
+        print("ERROR - Port is not an integer")
         return
 
     # Open IPv4/TCP socket
@@ -25,13 +25,13 @@ def main(argv):
         s.listen()
 
         # Blocking function call that waits for connection
-        conn, _ = s.accept()
-        with conn:
+        connection, _ = s.accept()
+        with connection:
 
             # Waits for correct message
             while True:
-                msg = conn.recv(4)
-                if msg == b'256':
+                message = connection.recv(4)
+                if message == b'256':
                     break
             # Generates random port in correct range
             r_port = random.randint(1024, 65535)
@@ -39,20 +39,25 @@ def main(argv):
                    "Please select your special random port"), r_port)
 
             # Sends random port back to client
-            conn.sendall(str(r_port).encode('utf8'))
+            connection.sendall(str(r_port).encode('utf8'))
 
     # Socket connection implicitly closes
 
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-        
+
         # Allows socket to be immediately reopened after closing
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.settimeout(5)  # In seconds
         s.bind((HOST, r_port))
 
         # Opens file
         with open('output.txt', 'wb') as f:
             while True:
-                packet, address = s.recvfrom(4)
+                try:
+                    packet, address = s.recvfrom(4)
+                except socket.timeout:
+                    print("ERROR - Connection timed out")
+                    break
                 if packet == b'\x04':  # EOT
                     break
                 f.write(packet)
